@@ -1,5 +1,6 @@
 'use client';
 
+import { login } from '@/app/API/authServices/authService';
 import React, { useState, useEffect } from 'react';
 
 const TriangleLogo = ({ className = 'w-7 h-7 text-white' }) => (
@@ -54,9 +55,6 @@ const ShieldCheckIcon = ({ className = 'w-4 h-4' }) => (
 );
 
 export default function Login() {
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [authStatus, setAuthStatus] = useState('idle'); 
-  const [activeTab, setActiveTab] = useState('terminal');
   const [logIndex, setLogIndex] = useState(0);
 
   const buildLogs = [
@@ -69,14 +67,6 @@ export default function Login() {
     { type: 'url', text: 'https://deployx-app-git-main.vercel.cloud' },
   ];
 
-  const edgeNodes = [
-    { city: 'Washington, D.C. (IAD)', latency: '12ms', status: 'Optimal' },
-    { city: 'Frankfurt, Germany (FRA)', latency: '18ms', status: 'Optimal' },
-    { city: 'Tokyo, Japan (NRT)', latency: '24ms', status: 'Optimal' },
-    { city: 'São Paulo, Brazil (GRU)', latency: '38ms', status: 'Optimal' },
-    { city: 'Sydney, Australia (SYD)', latency: '42ms', status: 'Optimal' },
-  ];
-
   useEffect(() => {
     const timer = setInterval(() => {
       setLogIndex((prev) => (prev + 1) % (buildLogs.length + 1));
@@ -84,21 +74,7 @@ export default function Login() {
     return () => clearInterval(timer);
   }, [buildLogs.length]);
 
-  const handleGithubLogin = () => {
-    if (isConnecting || authStatus === 'success') return;
-    setIsConnecting(true);
-    setAuthStatus('loading');
 
-    setTimeout(() => {
-      setIsConnecting(false);
-      setAuthStatus('success');
-    }, 2500);
-  };
-
-  const resetDemo = () => {
-    setIsConnecting(false);
-    setAuthStatus('idle');
-  };
 
   return (
     <div className="min-h-screen bg-black text-zinc-100 font-sans antialiased flex flex-col justify-between selection:bg-zinc-800 selection:text-white relative overflow-hidden">
@@ -167,8 +143,7 @@ export default function Login() {
                 
                 <div className="flex bg-black/60 p-0.5 rounded-lg border border-zinc-800">
                   <button 
-                    onClick={() => setActiveTab('terminal')}
-                    className={`px-3 py-1 rounded-md transition-all text-xs ${activeTab === 'terminal' ? 'bg-zinc-800 text-white font-medium shadow' : 'text-zinc-400 hover:text-zinc-200'}`}
+                    className={`px-3 py-1 rounded-md transition-all text-xs bg-zinc-800 text-white font-medium shadow `}
                   >
                     Live Build
                   </button>
@@ -252,45 +227,16 @@ export default function Login() {
 
                 <div className="space-y-5">
                   
-                  {authStatus === 'idle' && (
+                  
                     <button
-                      onClick={handleGithubLogin}
                       className="w-full flex items-center justify-center gap-3 py-4 px-6 bg-white hover:bg-zinc-200 active:scale-[0.99] text-black font-bold text-sm sm:text-base rounded-xl transition-all duration-200 shadow-[0_0_30px_-5px_rgba(255,255,255,0.25)] hover:shadow-[0_0_40px_-5px_rgba(255,255,255,0.4)] cursor-pointer group/btn"
                     >
                       <GithubIcon className="w-6 h-6 text-black transition-transform group-hover/btn:scale-110 duration-200" />
-                      <span>Continue with GitHub</span>
+                      <a href='https://vercel-production-d3aa.up.railway.app/api/auth/github/authorize'>
+                      Continue with GitHub
+                      </a>
                     </button>
-                  )}
-
-                  {authStatus === 'loading' && (
-                    <div className="w-full py-4 px-6 bg-zinc-900 border border-zinc-700 rounded-xl flex items-center justify-center gap-3 text-zinc-200 font-semibold text-sm shadow-inner cursor-wait animate-pulse">
-                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Connecting to GitHub OAuth...</span>
-                    </div>
-                  )}
-
-                  {authStatus === 'success' && (
-                    <div className="space-y-3">
-                      <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-center space-y-2 animate-fadeIn">
-                        <div className="inline-flex p-2 rounded-full bg-emerald-500/20 text-emerald-400 mb-1">
-                          <CheckCircleIcon className="w-6 h-6" />
-                        </div>
-                        <h4 className="font-bold text-sm text-white">OAuth Authentication Initialized</h4>
-                        <p className="text-xs text-zinc-300">
-                          GitHub permissions verified for repositories & pre-commit webhooks.
-                        </p>
-                      </div>
-                      <button
-                        onClick={resetDemo}
-                        className="w-full py-2 px-4 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
-                      >
-                        Reset Frontend Test Demo
-                      </button>
-                    </div>
-                  )}
+            
 
                   <div className="flex items-center justify-center gap-2 text-[12px] text-zinc-400 py-1">
                     <ShieldCheckIcon className="w-4 h-4 text-emerald-400" />
@@ -364,3 +310,28 @@ export default function Login() {
     </div>
   );
 }
+
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useRouter } from "next/navigation";
+
+// export default function AuthCallback() {
+//   const router = useRouter();
+//   const [error, setError] = useState<string | null>(null);
+
+//   useEffect(() => {
+//     const params = new URLSearchParams(window.location.hash.substring(1));
+//     const token = params.get("token");
+
+//     if (token) {
+//       localStorage.setItem("token", token);
+//       router.replace("/dashboard");
+//     } else {
+//       setError(new URLSearchParams(window.location.search).get("error") ?? "unknown");
+//     }
+//   }, [router]);
+
+//   if (error) return <p>Login failed: {error}</p>;
+//   return <p>Signing you in…</p>;
+// }
