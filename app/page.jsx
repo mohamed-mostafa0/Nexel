@@ -4,43 +4,8 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserPorjects } from "./API/projectServices/projectService";
 
-const getLanguageColor = (lang) => {
-  if (!lang) return "bg-zinc-500";
-  const colors = {
-    JavaScript: "bg-yellow-400",
-    TypeScript: "bg-blue-500",
-    Python: "bg-emerald-500",
-    HTML: "bg-orange-500",
-    CSS: "bg-indigo-400",
-    Java: "bg-red-500",
-    Go: "bg-cyan-400",
-    Rust: "bg-amber-600",
-    PHP: "bg-purple-500",
-    C: "bg-gray-400",
-    "C++": "bg-pink-500",
-    Ruby: "bg-rose-500",
-  };
-  return colors[lang] || "bg-blue-400";
-};
-
-const formatUpdatedDate = (dateString) => {
-  if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-    if (diffInDays === 0) return "Today";
-    if (diffInDays === 1) return "Yesterday";
-    if (diffInDays < 30) return `${diffInDays}d ago`;
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  } catch {
-    return "";
-  }
-};
-
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("ALL");
 
   const { data, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['projects'],
@@ -56,23 +21,17 @@ export default function Home() {
     return Array.isArray(data) ? data : (data?.repos || data?.repositories || data?.data || []);
   }, [data]);
 
-  const languages = useMemo(() => {
-    const langs = new Set(["ALL"]);
-    repositories.forEach((repo) => {
-      if (repo.language) langs.add(repo.language);
-    });
-    return Array.from(langs);
-  }, [repositories]);
-
   const filteredRepos = useMemo(() => {
     return repositories.filter((repo) => {
-      const matchesSearch =
-        (repo.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (repo.description || "").toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesLang = selectedLanguage === "ALL" || repo.language === selectedLanguage;
-      return matchesSearch && matchesLang;
+      const query = searchQuery.toLowerCase();
+      return (
+        (repo.name || "").toLowerCase().includes(query) ||
+        (repo.full_name || "").toLowerCase().includes(query) ||
+        (repo.default_branch || "").toLowerCase().includes(query)
+      );
     });
-  }, [repositories, searchQuery, selectedLanguage]);
+  }, [repositories, searchQuery]);
+
 
 
   return (
@@ -142,75 +101,47 @@ export default function Home() {
           )}
         </div>
 
-        <div className="bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-5 sm:p-6 shadow-2xl mb-8">
-          <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
-            <div className="relative flex-1 max-w-lg">
-              <svg className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search repositories by name or description..."
-                className="w-full pl-10 pr-10 py-2.5 bg-zinc-950/80 border border-zinc-800/80 rounded-xl text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/80 transition-all duration-200"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors p-0.5"
-                  title="Clear search"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-
-            {!isLoading && languages.length > 1 && (
-              <div className="flex items-center gap-1.5 flex-wrap overflow-x-auto py-1">
-                <span className="text-xs font-mono font-medium text-zinc-500 mr-1 hidden sm:inline">Filter:</span>
-                {languages.map((lang) => (
-                  <button
-                    key={lang}
-                    onClick={() => setSelectedLanguage(lang)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                      selectedLanguage === lang
-                        ? "bg-white text-black font-semibold shadow-md scale-105"
-                        : "bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-                    }`}
-                  >
-                    {lang === "ALL" ? "All Languages" : lang}
-                  </button>
-                ))}
-              </div>
+        <div className="bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-4 sm:p-6 shadow-2xl mb-8">
+          <div className="relative w-full">
+            <svg className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search repositories by name, username, or branch..."
+              className="w-full pl-12 pr-10 py-3 bg-zinc-950/90 border border-zinc-800/80 rounded-xl text-base text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/80 transition-all duration-200"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors p-1 rounded-lg bg-zinc-800/80 hover:bg-zinc-700"
+                title="Clear search"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             )}
           </div>
         </div>
 
         {isLoading || isRefetching ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[...Array(6)].map((_, index) => (
+          <div className="space-y-3.5">
+            {[...Array(5)].map((_, index) => (
               <div
                 key={index}
-                className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800/60 animate-pulse flex flex-col justify-between h-44"
+                className="p-5 rounded-2xl bg-zinc-900/30 border border-zinc-800/60 animate-pulse flex items-center justify-between gap-4 h-24"
               >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="h-5 w-48 bg-zinc-800/80 rounded-md" />
-                    <div className="h-5 w-16 bg-zinc-800/80 rounded-full" />
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-zinc-800/80 shrink-0" />
+                  <div className="space-y-2">
+                    <div className="h-5 w-56 bg-zinc-800/80 rounded-md" />
+                    <div className="h-3.5 w-32 bg-zinc-800/50 rounded" />
                   </div>
-                  <div className="h-3 w-full bg-zinc-800/50 rounded" />
-                  <div className="h-3 w-2/3 bg-zinc-800/50 rounded" />
                 </div>
-                <div className="flex items-center justify-between pt-4 border-t border-zinc-800/40">
-                  <div className="flex items-center gap-3">
-                    <div className="h-4 w-20 bg-zinc-800/60 rounded" />
-                    <div className="h-4 w-14 bg-zinc-800/60 rounded" />
-                  </div>
-                  <div className="h-8 w-20 bg-zinc-800/80 rounded-lg" />
-                </div>
+                <div className="h-9 w-24 bg-zinc-800/80 rounded-xl shrink-0" />
               </div>
             ))}
           </div>
@@ -243,110 +174,87 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="text-lg font-bold text-white mb-1">
-              {searchQuery || selectedLanguage !== "ALL" ? "No matching repositories" : "No repositories found"}
+              {searchQuery ? "No matching repositories" : "No repositories found"}
             </h3>
             <p className="text-zinc-400 text-sm mb-6">
-              {searchQuery || selectedLanguage !== "ALL"
-                ? "Try adjusting your search keywords or clearing the language filter."
+              {searchQuery
+                ? "Try adjusting your search keywords."
                 : "Connect your GitHub account or check your access permissions to import projects."}
             </p>
-            {(searchQuery || selectedLanguage !== "ALL") && (
+            {searchQuery && (
               <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedLanguage("ALL");
-                }}
+                onClick={() => setSearchQuery("")}
                 className="px-5 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold uppercase tracking-wider transition-colors border border-zinc-700/50"
               >
-                Reset Filters
+                Reset Search
               </button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredRepos.map((repo) => (
-              <div
-                key={repo.id || repo.name}
-                className="group relative p-6 rounded-2xl bg-zinc-900/50 hover:bg-zinc-900/90 border border-zinc-800/80 hover:border-blue-500/40 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col justify-between overflow-hidden"
-              >
-                <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-all duration-500 pointer-events-none" />
+          <div className="space-y-3.5">
+            {filteredRepos.map((repo) => {
+              const parts = (repo.full_name || "").split("/");
+              const owner = parts.length > 1 ? parts[0] : "";
+              const repoName = parts.length > 1 ? parts[1] : (repo.name || repo.full_name);
 
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2.5 overflow-hidden">
-                      <div className="p-2 rounded-lg bg-zinc-800/80 text-zinc-300 group-hover:text-white transition-colors">
-                        {repo.private ? (
-                          <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              return (
+                <div
+                  key={repo.id || repo.full_name}
+                  className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:px-6 rounded-2xl bg-zinc-900/50 hover:bg-zinc-900/90 border border-zinc-800/80 hover:border-blue-500/50 transition-all duration-300 shadow-sm hover:shadow-[0_4px_25px_rgba(59,130,246,0.15)] overflow-hidden"
+                >
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-xl bg-zinc-800/80 group-hover:bg-blue-500/10 border border-zinc-700/60 group-hover:border-blue-500/30 flex items-center justify-center text-zinc-400 group-hover:text-blue-400 transition-all duration-300 shrink-0">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                      </svg>
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 text-lg truncate">
+                        {owner && (
+                          <span className="text-zinc-500 font-mono text-sm sm:text-base font-medium shrink-0">
+                            {owner} /
+                          </span>
+                        )}
+                        <span className="font-extrabold text-white group-hover:text-blue-400 transition-colors tracking-tight truncate">
+                          {repoName}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-950/80 border border-zinc-800 text-zinc-300 font-mono text-xs shadow-inner">
+                          <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 3v12M18 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zm0-6a9 9 0 009-9" />
                           </svg>
-                        ) : (
-                          <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-                          </svg>
+                          <span>{repo.default_branch || "main"}</span>
+                        </div>
+                        {repo.id && (
+                          <span className="text-zinc-500 font-mono text-xs">
+                            ID: <span className="text-zinc-400">{repo.id}</span>
+                          </span>
                         )}
                       </div>
-                      <a
-                        href={repo.html_url || `#`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-bold text-white text-lg hover:text-blue-400 transition-colors truncate block max-w-[240px] sm:max-w-[280px]"
-                      >
-                        {repo.name || repo.full_name}
-                      </a>
                     </div>
-                    <span className={`text-[10px] uppercase font-mono tracking-wider font-bold px-2 py-0.5 rounded-full border shrink-0 ${
-                      repo.private
-                        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                        : "bg-zinc-800/80 text-zinc-400 border-zinc-700/80"
-                    }`}>
-                      {repo.private ? "Private" : "Public"}
-                    </span>
                   </div>
 
-                  <p className="text-zinc-400 text-sm leading-relaxed line-clamp-2 min-h-[40px] mb-6">
-                    {repo.description || (
-                      <span className="italic text-zinc-600">No repository description provided.</span>
-                    )}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-zinc-800/60 flex items-center justify-between gap-4 text-xs font-mono text-zinc-400">
-                  <div className="flex items-center gap-4 flex-wrap">
-                    {repo.language && (
-                      <div className="flex items-center gap-1.5" title="Primary Language">
-                        <span className={`h-2.5 w-2.5 rounded-full ${getLanguageColor(repo.language)}`} />
-                        <span className="font-medium text-zinc-300">{repo.language}</span>
-                      </div>
-                    )}
-                    {typeof repo.stargazers_count === 'number' && (
-                      <div className="flex items-center gap-1 text-zinc-400 hover:text-zinc-200 transition-colors" title="Stargazers">
-                        <svg className="w-3.5 h-3.5 text-amber-400 fill-amber-400/20" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                        </svg>
-                        <span>{repo.stargazers_count}</span>
-                      </div>
-                    )}
-                    {repo.updated_at && (
-                      <span className="text-zinc-500 hidden sm:inline" title={`Updated: ${new Date(repo.updated_at).toLocaleString()}`}>
-                        Updated {formatUpdatedDate(repo.updated_at)}
-                      </span>
-                    )}
+                  <div className="flex items-center justify-end sm:shrink-0 pt-2 sm:pt-0 border-t sm:border-0 border-zinc-800/60 w-full sm:w-auto">
+                    <button
+                      onClick={() => {
+                        console.log("Importing:", repo.full_name);
+                      }}
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-zinc-800 hover:bg-white text-zinc-200 hover:text-black font-semibold text-sm transition-all duration-200 shadow-sm flex items-center justify-center gap-2 group-hover:bg-blue-600 group-hover:text-white group-hover:hover:bg-blue-500 group-hover:hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] active:scale-95"
+                    >
+                      <span>Import</span>
+                      <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </button>
                   </div>
-
-                  <button
-                    onClick={() => {
-                      alert(`Deploying ${repo.name || 'repository'}...`);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-zinc-800/90 hover:bg-white text-zinc-200 hover:text-black font-sans font-bold text-xs tracking-wide transition-all duration-200 shadow-sm flex items-center gap-1.5 shrink-0 group-hover:bg-blue-600 group-hover:text-white group-hover:hover:bg-blue-500 group-hover:hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] active:scale-95"
-                  >
-                    <span>Import</span>
-                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
