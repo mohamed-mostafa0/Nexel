@@ -89,11 +89,9 @@ export default function Navbar() {
                 </svg>
               </div>
               <span className="text-white font-semibold tracking-tight text-lg group-hover:text-zinc-200 transition-colors">
-                Vercel
+                Nexel
               </span>
-              <span className="hidden sm:inline-block text-xs uppercase px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono">
-                Platform
-              </span>
+
             </Link>
 
             <div className="hidden md:flex items-center gap-1">
