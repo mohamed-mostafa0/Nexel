@@ -52,7 +52,7 @@ export default function CallbackHandler() {
         localStorage.setItem("token", token);
         console.log("Token successfully saved to localStorage!", token);
         setStatus("Success! Redirecting to dashboard...");
-        router.replace("/dashboard");
+        router.replace("/");
       })
       .catch((err) => {
         console.error("OAuth exchange error:", err);
