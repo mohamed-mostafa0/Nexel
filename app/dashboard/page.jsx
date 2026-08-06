@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getUserPorjects } from "../API/projectServices/projectService";
+import { connectProject, getUserPorjects, triggerDeplyoment, getDeployments } from "../API/projectServices/projectService";
 import Link from "next/link";
 
 export default function Dashboard() {
@@ -15,6 +15,50 @@ export default function Dashboard() {
     },
     refetchOnWindowFocus: false,
   });
+
+  const [deployStates, setDeployStates] = useState({});
+
+  const handleImport = async (repoFullName) => {
+    setDeployStates((prev) => ({
+      ...prev,
+      [repoFullName]: { status: "CONNECTING" },
+    }));
+
+    try {
+      const connectRes = await connectProject({ repoFullName });
+      const projectId = connectRes.data.id;
+
+      setDeployStates((prev) => ({
+        ...prev,
+        [repoFullName]: { status: "DEPLOYING" },
+      }));
+
+      const deployRes = await triggerDeplyoment(projectId);
+      const deploymentId = deployRes.data.id;
+
+      let isReady = false;
+      while (!isReady) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        const statusRes = await getDeployments(projectId, deploymentId);
+        
+        if (statusRes.data.status === "READY") {
+          isReady = true;
+          setDeployStates((prev) => ({
+            ...prev,
+            [repoFullName]: { status: "READY", url: statusRes.data.url },
+          }));
+        } else if (statusRes.data.status === "ERROR" || statusRes.data.status === "FAILED") {
+          throw new Error(statusRes.data.errorMessage || "Deployment failed");
+        }
+      }
+    } catch (err) {
+      console.error("Deployment Error:", err);
+      setDeployStates((prev) => ({
+        ...prev,
+        [repoFullName]: { status: "ERROR", errorMessage: err.message || "An error occurred" },
+      }));
+    }
+  };
 
   const repositories = useMemo(() => {
     if (!data) return [];
@@ -190,12 +234,56 @@ export default function Dashboard() {
                         <span className="truncate max-w-[100px]">{repo.default_branch || "main"}</span>
                       </div>
                       
-                      <button
-                        onClick={() => console.log("Importing:", repo.full_name)}
-                        className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-white text-black font-semibold text-sm transition-all duration-200 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0"
-                      >
-                        Import
-                      </button>
+                      {(() => {
+                        const state = deployStates[repo.full_name];
+                        if (state?.status === "CONNECTING" || state?.status === "DEPLOYING") {
+                          return (
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 font-semibold text-sm">
+                              <svg className="w-4 h-4 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75" />
+                              </svg>
+                              <span>{state.status === "CONNECTING" ? "Connecting..." : "Deploying..."}</span>
+                            </div>
+                          );
+                        }
+                        if (state?.status === "READY") {
+                          return (
+                            <a
+                              href={state.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all duration-200 shadow-[0_0_15px_rgba(59,130,246,0.4)] flex items-center gap-2"
+                            >
+                              <span>Visit</span>
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          );
+                        }
+                        if (state?.status === "ERROR") {
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-rose-400 font-mono max-w-[100px] truncate" title={state.errorMessage}>Failed</span>
+                              <button
+                                onClick={() => handleImport(repo.full_name)}
+                                className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-sm transition-all duration-200 border border-zinc-700"
+                              >
+                                Retry
+                              </button>
+                            </div>
+                          );
+                        }
+                        return (
+                          <button
+                            onClick={() => handleImport(repo.full_name)}
+                            className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-white text-black font-semibold text-sm transition-all duration-200 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0"
+                          >
+                            Import
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
                 );
