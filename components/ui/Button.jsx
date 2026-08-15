@@ -1,16 +1,14 @@
 import Link from "next/link"
 
-
-
-
 export default function Button({
     href,
     variant ="primary",
     className ='',
     children,
-    icon=""
+    icon="",
+    iconPosition="right",
+    ...props
 }){
-
 
     const baseStyle = "inline-flex items-center justify-center gap-2 rounded-pill py-3 px-6 transition-colors duration-200 text-sm font-medium"
 
@@ -23,15 +21,19 @@ export default function Button({
 
     if(href){
         return (
-            <Link href={href} className={combinedStyle}>
-                {children} {icon && <span>{icon}</span>}
+            <Link href={href} className={combinedStyle} {...props}>
+                {icon && iconPosition == "left" && <span>{icon}</span>}
+                {children}
+                {icon && iconPosition == "right" && <span>{icon}</span>}
             </Link>
         )
     }
 
     return (
-        <button className={combinedStyle}>
-            {children} {icon && <span>{icon}</span>}
+        <button className={combinedStyle} {...props}>
+            {icon && iconPosition == "left" && <span>{icon}</span>}
+            {children}
+            {icon && iconPosition == "right" && <span>{icon}</span>}
         </button>
     )
 }
