@@ -66,18 +66,16 @@ export default function Footer() {
     <footer className="border-t border-white/10 bg-void text-ash font-sans relative overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-twilight/10 blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between pb-12 border-b border-zinc-800/60 gap-8">
-          <div className="space-y-2 max-w-md">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-pill text-xs font-medium bg-iris/10 text-iris border border-iris/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-iris animate-pulse mr-2"></span>
-                All systems operational
-              </span>
-            </div>
-            <h3 className="text-vellum font-medium text-lg">Subscribe to developer updates</h3>
-            <p className="text-sm text-ash">
-              Get the latest Next.js releases, product updates, and developer workshops directly to your inbox.
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-20">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between pb-12 border-b border-white/5 gap-8">
+          <div className="max-w-md">
+            <p className="eyebrow">Newsletter</p>
+            <h3 className="mt-4 text-2xl font-normal tracking-[-0.02em] text-vellum">
+              Subscribe to developer updates
+            </h3>
+            <p className="mt-3 text-[15px] leading-relaxed text-ash">
+              Get the latest releases, product updates, and developer workshops
+              directly to your inbox.
             </p>
           </div>
 
@@ -147,7 +145,7 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="flex items-center gap-4 text-zinc-400">
+          <div className="flex items-center gap-4 text-ash">
             <a
               href="https://github.com/vercel"
               target="_blank"

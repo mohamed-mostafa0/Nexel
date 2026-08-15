@@ -31,7 +31,7 @@ export default function Dashboard() {
     }));
 
     try {
-      const connectRes = await connectProject({ repoFullName , rootDirectory });
+      const connectRes = await connectProject({ repoFullName  });
       const projectId = connectRes.data.id;
 
       setDeployStates((prev) => ({

@@ -86,11 +86,21 @@ body {
 }
 .animate-kenburns { animation: kenburns 32s ease-in-out infinite alternate; }
 
+/* Header / menu entrance — mirrors the hero reveal's calm easing */
+@keyframes fade-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-down { animation: fade-down 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-down-sm { animation: fade-down 0.22s ease-out both; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .animate-marquee,
   .animate-floaty,
-  .animate-kenburns {
+  .animate-kenburns,
+  .animate-fade-down,
+  .animate-fade-down-sm {
     animation: none !important;
   }
 }

@@ -54,16 +54,20 @@ export default function Navbar() {
   const navLinks = [
     { name: "Features", href: "#features", badge: null },
     { name: "Docs", href: "#docs", badge: null },
-    { name: "Templates", href: "#templates", badge: "New" },
-    { name: "Customers", href: "#customers", badge: null },
-    { name: "Enterprise", href: "#enterprise", badge: null },
-    { name: "Pricing", href: "#pricing", badge: null },
+    { name: "Templates", href: "#templates", badge: null },
+    { name: "Customers", href: "#customers", badge: null }
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full flex flex-col font-sans">
-      <div className="bg-void px-4 py-2 text-center text-xs font-medium text-ash transition-colors hover:text-lilac flex items-center justify-center gap-2 cursor-pointer border-b border-white/5">
-        <span className="flex h-1.5 w-1.5 rounded-full bg-iris animate-pulse"></span>
+    <header className="sticky top-0 z-50 w-full flex flex-col font-sans animate-fade-down">
+      <div
+        className={`px-6 py-2 text-center text-xs font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors duration-300 hover:text-lilac ${
+          isScrolled
+            ? "bg-void/85 backdrop-blur-md text-ash border-b border-white/5"
+            : "bg-transparent text-ash"
+        }`}
+      >
+        <span className="flex h-1.5 w-1.5 rounded-full bg-iris animate-pulse motion-reduce:animate-none"></span>
         <span>Introducing Nexel AI Platform 4.0 — supercharge your Next.js workflows</span>
         <span className="font-mono uppercase tracking-wider text-iris ml-1">Learn more →</span>
       </div>
@@ -72,10 +76,10 @@ export default function Navbar() {
         className={`w-full border-b transition-all duration-300 ${
           isScrolled
             ? "border-white/10 bg-void/85 backdrop-blur-md py-2.5"
-            : "border-white/5 bg-void/60 backdrop-blur-sm py-3.5"
+            : "border-transparent bg-transparent py-4"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link href="/" className="group flex items-center gap-2.5 outline-none">
               <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-graphite border border-white/10 group-hover:border-iris/50 transition-all duration-300">
@@ -119,9 +123,6 @@ export default function Navbar() {
                   href="/dashboard"
                   className="px-4 py-2 text-sm font-medium text-vellum bg-white/[0.03] hover:bg-white/[0.06] border border-charcoal hover:border-smoke rounded-pill transition-all duration-200 flex items-center gap-2"
                 >
-                  <svg className="w-4 h-4 text-iris" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
                   Dashboard
                 </Link>
                 <button
@@ -184,7 +185,7 @@ export default function Navbar() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/10 bg-void/95 backdrop-blur-xl px-4 pt-3 pb-6 mt-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="md:hidden border-t border-white/10 bg-void/95 backdrop-blur-xl px-6 pt-3 pb-6 mt-3 space-y-3 animate-fade-down-sm">
             <div className="space-y-1">
               {navLinks.map((link) => (
                 <Link
