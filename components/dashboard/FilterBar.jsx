@@ -6,7 +6,8 @@ export default function FilterBar({
     setSearchQuery,
     searchQuery,
     viewMode,
-    setViewMode
+    setViewMode,
+    placeholder = "Search repositories by name, owner, or branch"
 }){
 
 
@@ -22,7 +23,7 @@ export default function FilterBar({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search repositories by name, owner, or branch"
+                placeholder={placeholder}
                 className="w-full bg-transparent px-2 py-2 text-[15px] text-vellum placeholder-smoke focus:outline-none focus:ring-0"
                 />
                 {searchQuery && (
