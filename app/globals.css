@@ -1,22 +1,96 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #ededed;
+  --background: #0a0a13;
+  --foreground: #fcfcfc;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
+  --color-pitch: #000000;
+  --color-void: #040407;
+  --color-graphite: #08080c;
+  --color-obsidian: #0a0a13;
+  --color-charcoal: #2a2a32;
+  --color-smoke: #757580;
+  --color-ash: #a3a3b3;
+  --color-lilac: #dedfee;
+  --color-vellum: #fcfcfc;
+  --color-iris: #6199f6;
+  --color-twilight: #4f4f80;
+
+  --color-background: #0a0a13;
+  --color-foreground: #fcfcfc;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --radius-card: 10px;
+  --radius-feature: 24px;
+  --radius-pill: 100px;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background-color: var(--background);
+  background-image:
+    radial-gradient(60rem 44rem at 50% -12%, rgba(97, 153, 246, 0.1), transparent 60%),
+    radial-gradient(48rem 36rem at 88% 4%, rgba(79, 79, 128, 0.14), transparent 60%),
+    radial-gradient(42rem 40rem at 6% 12%, rgba(79, 79, 128, 0.08), transparent 62%);
+  background-repeat: no-repeat;
+  font-family: var(--font-sans), system-ui, sans-serif;
   overflow-x: hidden;
-  selection-background-color: #3b82f6;
-  selection-color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #6199f6;
+  color: #040407;
+}
+
+.eyebrow {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--color-iris);
+}
+
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-marquee { animation: marquee 50s linear infinite; }
+.animate-marquee:hover { animation-play-state: paused; }
+.edge-fade {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+.animate-floaty { animation: floaty 9s ease-in-out infinite; }
+
+@keyframes kenburns {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+.animate-kenburns { animation: kenburns 32s ease-in-out infinite alternate; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-marquee,
+  .animate-floaty,
+  .animate-kenburns {
+    animation: none !important;
+  }
 }

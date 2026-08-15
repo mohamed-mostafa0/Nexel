@@ -3,6 +3,12 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { connectProject, getUserPorjects, triggerDeplyoment, getDeployments } from "../API/projectServices/projectService";
 import Link from "next/link";
+import { Reveal } from "@/components/Motion";
+
+const primaryPill =
+  "inline-flex items-center justify-center gap-2 rounded-pill bg-vellum px-4 py-2 text-sm font-medium text-obsidian transition-colors duration-200 hover:bg-white";
+const ghostPill =
+  "inline-flex items-center justify-center gap-2 rounded-pill border border-charcoal px-4 py-2 text-sm font-medium text-vellum transition-colors duration-200 hover:border-smoke hover:bg-white/[0.04]";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,7 +31,7 @@ export default function Dashboard() {
     }));
 
     try {
-      const connectRes = await connectProject({ repoFullName });
+      const connectRes = await connectProject({ repoFullName , rootDirectory });
       const projectId = connectRes.data.id;
 
       setDeployStates((prev) => ({
@@ -40,7 +46,7 @@ export default function Dashboard() {
       while (!isReady) {
         await new Promise((resolve) => setTimeout(resolve, 3000));
         const statusRes = await getDeployments(projectId, deploymentId);
-        
+
         if (statusRes.data.status === "READY") {
           isReady = true;
           setDeployStates((prev) => ({
@@ -78,214 +84,242 @@ export default function Dashboard() {
     });
   }, [repositories, searchQuery]);
 
+  const readyCount = useMemo(
+    () => Object.values(deployStates).filter((s) => s?.status === "READY").length,
+    [deployStates]
+  );
+
   return (
-    <div className="flex-1 bg-black min-h-screen text-white font-sans relative overflow-hidden">
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 blur-[150px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-purple-600/10 blur-[150px] rounded-full pointer-events-none" />
+    <div className="relative flex-1 overflow-hidden text-vellum">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[440px]"
+        style={{
+          background:
+            "radial-gradient(48rem 22rem at 18% -12%, rgba(97,153,246,0.1), transparent 60%), radial-gradient(42rem 22rem at 92% -4%, rgba(79,79,128,0.14), transparent 62%)",
+        }}
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-        
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-2 bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-              Dashboard
-            </h1>
-            <p className="text-zinc-400 text-lg">
-              Manage and deploy your GitHub repositories.
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-4">
-             {!isLoading && !isError && repositories.length > 0 && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/80 border border-zinc-800 text-sm font-mono text-zinc-300 shadow-inner backdrop-blur-md">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  {filteredRepos.length} Repositories
-                </div>
+      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 lg:px-8">
+        <Reveal>
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="eyebrow">Dashboard</p>
+              <h1 className="mt-4 text-4xl font-normal leading-[1.05] tracking-[-0.03em] text-vellum md:text-5xl">
+                Your repositories
+              </h1>
+              <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ash md:text-base">
+                Connect a GitHub repository and ship it to the edge in seconds.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {!isLoading && !isError && repositories.length > 0 && (
+                <span className="inline-flex items-center gap-2 rounded-pill border border-charcoal bg-white/[0.03] px-4 py-2 font-mono text-xs text-smoke">
+                  <span className="h-1.5 w-1.5 rounded-full bg-iris animate-pulse motion-reduce:animate-none" />
+                  {filteredRepos.length} repositories
+                </span>
               )}
-            <Link href="/" className="px-5 py-2 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm font-semibold border border-zinc-700 shadow-sm text-zinc-200 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Home
-            </Link>
+              <Link href="/" className={ghostPill}>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Home
+              </Link>
+            </div>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="mb-10 bg-zinc-900/40 border border-zinc-800/80 p-2 pl-4 rounded-2xl flex items-center shadow-lg backdrop-blur-xl group focus-within:border-blue-500/50 transition-colors">
-          <svg className="w-5 h-5 text-zinc-500 group-focus-within:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search repositories by name, owner, or branch..."
-            className="w-full bg-transparent border-none text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-0 px-4 py-2 text-base"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="p-2 mr-1 rounded-xl hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
+        {!isLoading && !isError && (
+          <Reveal delay={80} y={16}>
+            <div className="mt-10 grid grid-cols-3 gap-6 border-y border-white/5 py-8">
+              {[
+                ["Repositories", repositories.length],
+                ["Deployed", readyCount],
+                ["Edge regions", "100+"],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <p className="text-2xl font-normal tracking-[-0.02em] text-vellum md:text-4xl">
+                    {value}
+                  </p>
+                  <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-smoke">
+                    {label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        )}
 
-        <div className="min-h-[400px]">
+        <Reveal delay={120} y={14}>
+          <div className="group mt-10 flex items-center gap-2 rounded-pill border border-charcoal bg-graphite/60 px-5 py-1.5 transition-colors duration-200 focus-within:border-iris/60 focus-within:bg-graphite">
+            <svg className="h-5 w-5 flex-none text-smoke transition-colors duration-200 group-focus-within:text-iris" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search repositories by name, owner, or branch"
+              className="w-full bg-transparent px-2 py-2 text-[15px] text-vellum placeholder-smoke focus:outline-none focus:ring-0"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
+                className="rounded-pill p-1.5 text-smoke transition-colors hover:bg-white/5 hover:text-vellum"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </Reveal>
+
+        <div className="mt-10 min-h-[400px]">
           {isLoading || isRefetching ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-44 rounded-2xl bg-zinc-900/40 border border-zinc-800/50 animate-pulse p-6 flex flex-col justify-between">
-                   <div className="flex items-start gap-4">
-                     <div className="w-12 h-12 rounded-xl bg-zinc-800/80 shrink-0" />
-                     <div className="space-y-3 w-full mt-1">
-                        <div className="h-4 w-3/4 bg-zinc-800/80 rounded" />
-                        <div className="h-3 w-1/2 bg-zinc-800/50 rounded" />
-                     </div>
-                   </div>
-                   <div className="flex justify-between items-center mt-6 pt-4 border-t border-zinc-800/30">
-                     <div className="h-6 w-20 bg-zinc-800/60 rounded-full" />
-                     <div className="h-9 w-24 bg-zinc-800/80 rounded-lg" />
-                   </div>
+                <div
+                  key={i}
+                  className="flex h-44 animate-pulse flex-col justify-between rounded-card border border-white/5 bg-graphite/50 p-6"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="h-11 w-11 flex-none rounded-card bg-white/5" />
+                    <div className="mt-1 w-full space-y-2.5">
+                      <div className="h-3.5 w-3/4 rounded bg-white/5" />
+                      <div className="h-3 w-1/2 rounded bg-white/[0.03]" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-white/5 pt-4">
+                    <div className="h-6 w-20 rounded-pill bg-white/5" />
+                    <div className="h-8 w-20 rounded-pill bg-white/5" />
+                  </div>
                 </div>
               ))}
             </div>
           ) : isError ? (
-            <div className="flex flex-col items-center justify-center p-12 text-center rounded-3xl bg-red-500/5 border border-red-500/20 backdrop-blur-sm shadow-2xl max-w-2xl mx-auto">
-              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6 text-red-500">
-                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <Reveal>
+              <div className="mx-auto flex max-w-lg flex-col items-center rounded-feature border border-red-500/20 bg-red-500/[0.04] p-12 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 text-red-400/90">
+                  <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                 </svg>
-              </div>
-              <h3 className="text-2xl font-bold mb-3 text-white">Failed to load repositories</h3>
-              <p className="text-zinc-400 mb-8 max-w-md">There was a problem securely connecting to GitHub. Please check your credentials or try again later.</p>
-              <button
-                onClick={() => refetch()}
-                className="px-8 py-3 rounded-full bg-white text-black font-semibold shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-105 transition-all"
-              >
-                Try Again
-              </button>
-            </div>
-          ) : filteredRepos.length === 0 ? (
-             <div className="flex flex-col items-center justify-center p-16 text-center rounded-3xl bg-zinc-900/20 border border-zinc-800/50 backdrop-blur-sm border-dashed">
-                <div className="w-20 h-20 bg-zinc-800/40 rounded-3xl flex items-center justify-center mb-6 text-zinc-600 rotate-12 shadow-inner">
-                   <svg className="w-10 h-10 -rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                   </svg>
+                  </svg>
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-white">
+                <h3 className="mt-5 text-xl font-medium text-vellum">Couldn't load repositories</h3>
+                <p className="mt-2 max-w-md text-[15px] leading-relaxed text-ash">
+                  There was a problem connecting to GitHub. Check your credentials or try again.
+                </p>
+                <button onClick={() => refetch()} className={`${primaryPill} mt-7`}>
+                  Try again
+                </button>
+              </div>
+            </Reveal>
+          ) : filteredRepos.length === 0 ? (
+            <Reveal>
+              <div className="mx-auto flex max-w-lg flex-col items-center rounded-feature border border-dashed border-charcoal bg-white/[0.02] p-14 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-card border border-white/10 bg-white/[0.03] text-iris">
+                  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <h3 className="mt-5 text-xl font-medium text-vellum">
                   {searchQuery ? "No matching repositories" : "No repositories found"}
                 </h3>
-                <p className="text-zinc-400 max-w-md">
-                   {searchQuery 
-                    ? `We couldn't find any repositories matching "${searchQuery}".` 
+                <p className="mt-2 max-w-md text-[15px] leading-relaxed text-ash">
+                  {searchQuery
+                    ? `We couldn't find any repositories matching "${searchQuery}".`
                     : "Connect your GitHub account or check your permissions to see projects here."}
                 </p>
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery("")} className="mt-6 px-6 py-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors text-sm">
-                    Clear Search
+                  <button onClick={() => setSearchQuery("")} className={`${ghostPill} mt-6`}>
+                    Clear search
                   </button>
                 )}
-             </div>
+              </div>
+            </Reveal>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRepos.map((repo) => {
+            <div className="grid grid-cols-1 gap-5 md:auto-rows-fr md:grid-cols-2 lg:grid-cols-3">
+              {filteredRepos.map((repo, i) => {
                 const parts = (repo.full_name || "").split("/");
                 const owner = parts.length > 1 ? parts[0] : "";
                 const repoName = parts.length > 1 ? parts[1] : (repo.name || repo.full_name);
+                const state = deployStates[repo.full_name];
 
                 return (
-                  <div
-                    key={repo.id || repo.full_name}
-                    className="group flex flex-col justify-between bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 hover:bg-zinc-900/80 hover:border-blue-500/40 transition-all duration-300 shadow-lg hover:shadow-[0_8px_30px_rgba(59,130,246,0.1)] relative overflow-hidden backdrop-blur-sm"
-                  >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                  <Reveal key={repo.id || repo.full_name} delay={Math.min(i, 8) * 50} y={16} className="h-full">
+                    <div className="group relative flex h-full flex-col justify-between overflow-hidden rounded-card border border-twilight/40 bg-graphite/70 p-6 transition-colors duration-300 hover:border-twilight">
+                      <div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-twilight/25 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
+                      />
 
-                    <div>
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700/50 flex items-center justify-center text-zinc-400 group-hover:text-blue-400 group-hover:bg-blue-500/10 group-hover:border-blue-500/30 transition-colors shrink-0 shadow-sm">
-                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                          </svg>
-                        </div>
-                        <div className="min-w-0 flex-1 pt-1">
-                          <div className="text-sm font-mono text-zinc-500 truncate mb-1">
-                            {owner}
+                      <div className="relative">
+                        <div className="flex items-start gap-4">
+                          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-card border border-white/10 bg-white/[0.03] text-smoke transition-colors duration-300 group-hover:border-iris/40 group-hover:text-iris">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                            </svg>
                           </div>
-                          <h3 className="text-lg font-bold text-white group-hover:text-blue-300 transition-colors truncate tracking-tight">
-                            {repoName}
-                          </h3>
+                          <div className="min-w-0 flex-1 pt-0.5">
+                            <p className="truncate font-mono text-[11px] text-smoke">{owner}</p>
+                            <h3 className="mt-0.5 truncate text-lg font-medium tracking-tight text-vellum">
+                              {repoName}
+                            </h3>
+                          </div>
                         </div>
-                      </div>
-                      
-                      <p className="text-zinc-400 text-sm line-clamp-2 min-h-[40px]">
-                        {repo.description || "No description provided for this repository."}
-                      </p>
-                    </div>
 
-                    <div className="mt-6 pt-5 border-t border-zinc-800/50 flex items-center justify-between">
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-950/50 border border-zinc-800/80 text-xs font-mono text-zinc-300 shadow-inner">
-                        <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 3v12M18 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zm0-6a9 9 0 009-9" />
-                        </svg>
-                        <span className="truncate max-w-[100px]">{repo.default_branch || "main"}</span>
+                        <p className="mt-4 line-clamp-2 min-h-[40px] text-[13px] leading-relaxed text-ash">
+                          {repo.description || "No description provided for this repository."}
+                        </p>
                       </div>
-                      
-                      {(() => {
-                        const state = deployStates[repo.full_name];
-                        if (state?.status === "CONNECTING" || state?.status === "DEPLOYING") {
-                          return (
-                            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 font-semibold text-sm">
-                              <svg className="w-4 h-4 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
-                                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75" />
-                              </svg>
-                              <span>{state.status === "CONNECTING" ? "Connecting..." : "Deploying..."}</span>
-                            </div>
-                          );
-                        }
-                        if (state?.status === "READY") {
-                          return (
-                            <a
-                              href={state.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all duration-200 shadow-[0_0_15px_rgba(59,130,246,0.4)] flex items-center gap-2"
-                            >
-                              <span>Visit</span>
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                              </svg>
-                            </a>
-                          );
-                        }
-                        if (state?.status === "ERROR") {
-                          return (
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-rose-400 font-mono max-w-[100px] truncate" title={state.errorMessage}>Failed</span>
-                              <button
-                                onClick={() => handleImport(repo.full_name)}
-                                className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-sm transition-all duration-200 border border-zinc-700"
-                              >
-                                Retry
-                              </button>
-                            </div>
-                          );
-                        }
-                        return (
-                          <button
-                            onClick={() => handleImport(repo.full_name)}
-                            className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-white text-black font-semibold text-sm transition-all duration-200 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0"
+
+                      <div className="relative mt-6 flex items-center justify-between border-t border-white/5 pt-5">
+                        <span className="inline-flex items-center gap-1.5 rounded-pill border border-charcoal bg-void/60 px-3 py-1.5 font-mono text-[11px] text-smoke">
+                          <svg className="h-3.5 w-3.5 text-iris" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 3v12M18 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zm0-6a9 9 0 009-9" />
+                          </svg>
+                          <span className="max-w-[100px] truncate">{repo.default_branch || "main"}</span>
+                        </span>
+
+                        {state?.status === "CONNECTING" || state?.status === "DEPLOYING" ? (
+                          <div className="inline-flex items-center gap-2 rounded-pill border border-charcoal bg-white/[0.03] px-4 py-2 text-sm font-medium text-ash">
+                            <svg className="h-4 w-4 animate-spin text-iris" viewBox="0 0 24 24" fill="none">
+                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                              <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75" />
+                            </svg>
+                            <span>{state.status === "CONNECTING" ? "Connecting" : "Deploying"}</span>
+                          </div>
+                        ) : state?.status === "READY" ? (
+                          <a
+                            href={state.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 rounded-pill border border-iris/40 bg-iris/10 px-4 py-2 text-sm font-medium text-iris transition-colors duration-200 hover:bg-iris/15"
                           >
+                            <span>Visit</span>
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        ) : state?.status === "ERROR" ? (
+                          <div className="flex items-center gap-2.5">
+                            <span className="max-w-[90px] truncate font-mono text-[11px] text-red-400/80" title={state.errorMessage}>
+                              Failed
+                            </span>
+                            <button onClick={() => handleImport(repo.full_name)} className={ghostPill}>
+                              Retry
+                            </button>
+                          </div>
+                        ) : (
+                          <button onClick={() => handleImport(repo.full_name)} className={primaryPill}>
                             Import
                           </button>
-                        );
-                      })()}
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </Reveal>
                 );
               })}
             </div>
