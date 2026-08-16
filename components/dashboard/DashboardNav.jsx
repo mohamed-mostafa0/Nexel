@@ -8,8 +8,7 @@ const NAV = [
   { label: "Import", href: "/dashboard/import" },
 ];
 
-// Most-specific match wins, so nested routes (e.g. /dashboard/[projectId])
-// keep their parent tab ("Deployments") highlighted.
+
 function activeHref(pathname, hrefs) {
   const matches = hrefs.filter((h) => pathname === h || pathname.startsWith(h + "/"));
   if (matches.length === 0) return null;

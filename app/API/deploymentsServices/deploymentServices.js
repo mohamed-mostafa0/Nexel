@@ -48,5 +48,13 @@ export const getPorjectCommits = (projectId , limit)=>{
     })
 }
 
+export const getBuildLogs = (projectId , deploymentId)=>{
+    return API.get(`/api/projects/${projectId}/deployments/${deploymentId}/logs`,{
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+    })
+}
+
 
 

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getPorjectDeployment } from "@/app/API/deploymentsServices/deploymentServices";
 import { Reveal } from "@/components/Motion";
 import StatusBadge from "@/components/dashboard/StatusBadge";
+import BuildLogs from "@/components/dashboard/deployments/BuildLogs";
 import Button from "@/components/ui/Button";
 import {
   normalizeProjectDeployment,
@@ -161,6 +162,19 @@ export default function DeploymentDetailPage() {
             </div>
           </Reveal>
         </>
+      )}
+
+      {!isError && (
+        <Reveal delay={180} y={16}>
+          <section className="mt-10">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-smoke">
+              Build logs
+            </h2>
+            <div className="mt-4">
+              <BuildLogs projectId={projectId} deploymentId={deploymentId} />
+            </div>
+          </section>
+        </Reveal>
       )}
     </>
   );
