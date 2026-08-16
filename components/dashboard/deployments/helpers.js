@@ -85,3 +85,30 @@ export function normalizeCommit(c = {}) {
     url: c.url || "",
   };
 }
+
+export function normalizeProjectDeployment(d = {}) {
+  return {
+    id: d.id,
+    projectId: d.projectId,
+    status: String(d.status || "").toUpperCase(),
+    current: !!d.current,
+    commitSha: d.commitSha || "",
+    shortSha: (d.commitSha || "").slice(0, 7),
+    errorMessage: d.errorMessage || "",
+    url: d.url || "",
+    previewUrl: d.previewUrl || "",
+    createdAt: d.createdAt || null,
+    readyAt: d.readyAt || null,
+  };
+}
+
+export function formatDuration(start, end) {
+  if (!start || !end) return "";
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  if (Number.isNaN(ms) || ms < 0) return "";
+  const totalSeconds = Math.round(ms / 1000);
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return seconds ? `${minutes}m ${seconds}s` : `${minutes}m`;
+}

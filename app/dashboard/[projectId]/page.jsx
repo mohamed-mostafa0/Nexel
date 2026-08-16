@@ -6,12 +6,18 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getDeployments as getDeployedProjects,
   getPorjectCommits,
+  listDepolymentsForProject,
 } from "@/app/API/deploymentsServices/deploymentServices";
 import { Reveal } from "@/components/Motion";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import CommitList from "@/components/dashboard/deployments/CommitList";
+import ProjectDeployments from "@/components/dashboard/deployments/ProjectDeployments";
 import DeleteDeploymentButton from "@/components/dashboard/deployments/DeleteDeploymentButton";
-import { normalizeDeployment, timeAgo } from "@/components/dashboard/deployments/helpers";
+import {
+  normalizeDeployment,
+  normalizeProjectDeployment,
+  timeAgo,
+} from "@/components/dashboard/deployments/helpers";
 
 const COMMIT_LIMIT = 20;
 
@@ -75,8 +81,28 @@ export default function DeploymentDetailPage() {
     refetchOnWindowFocus: false,
   });
 
+  // Real deployment records give a more accurate live URL + status than the projects list.
+  const { data: projDepData } = useQuery({
+    queryKey: ["projectDeployments", projectId],
+    queryFn: async () => {
+      const res = await listDepolymentsForProject(projectId);
+      return res.data;
+    },
+    enabled: !!projectId,
+    refetchOnWindowFocus: false,
+  });
+
+  const currentDeployment = useMemo(() => {
+    const list = (
+      Array.isArray(projDepData) ? projDepData : projDepData?.deployments || projDepData?.data || []
+    ).map(normalizeProjectDeployment);
+    return list.find((d) => d.current) || list[0] || null;
+  }, [projDepData]);
+
   const title = deployment?.repoName || deployment?.name || "Deployment";
   const updated = deployment?.updatedAt ? timeAgo(deployment.updatedAt) : "";
+  const headerStatus = currentDeployment?.status || deployment?.status;
+  const headerUrl = currentDeployment?.url || deployment?.url;
 
   return (
     <>
@@ -111,7 +137,7 @@ export default function DeploymentDetailPage() {
                     <h1 className="truncate text-2xl font-normal tracking-[-0.02em] text-vellum md:text-3xl">
                       {title}
                     </h1>
-                    {deployment?.status && <StatusBadge status={deployment.status} />}
+                    {headerStatus && <StatusBadge status={headerStatus} />}
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-3 text-[13px] text-ash">
                     <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-smoke">
@@ -125,9 +151,9 @@ export default function DeploymentDetailPage() {
             </div>
           </div>
 
-          {deployment?.url && (
+          {headerUrl && (
             <a
-              href={deployment.url}
+              href={headerUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex flex-none items-center gap-2 self-start rounded-pill border border-iris/40 bg-iris/10 px-5 py-2 text-sm font-medium text-iris transition-colors duration-200 hover:bg-iris/15"
@@ -146,7 +172,18 @@ export default function DeploymentDetailPage() {
         </div>
       </Reveal>
 
-      <Reveal delay={120} y={16}>
+      <Reveal delay={110} y={16}>
+        <section className="mt-10">
+          <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-smoke">
+            Deployments
+          </h2>
+          <div className="mt-4">
+            <ProjectDeployments projectId={projectId} />
+          </div>
+        </section>
+      </Reveal>
+
+      <Reveal delay={140} y={16}>
         <section className="mt-10">
           <div className="flex items-center justify-between">
             <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-smoke">
