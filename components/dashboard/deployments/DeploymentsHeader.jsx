@@ -39,9 +39,9 @@ export default function DeploymentsHeader({ isLoading, isError, stats }) {
           <div className="mt-10 grid grid-cols-2 gap-6 border-y border-white/5 py-8 md:grid-cols-4">
             {[
               ["Deployments", stats.total, "text-vellum"],
-              ["Live", stats.ready, "text-emerald-400"],
-              ["Building", stats.building, "text-amber-400"],
-              ["Failed", stats.failed, "text-red-400"],
+              ["Live", stats.ready, "text-vellum"],
+              ["Building", stats.building, "text-vellum"],
+              ["Failed", stats.failed, "text-vellum"],
             ].map(([label, value, tone]) => (
               <div key={label}>
                 <p className={`text-2xl font-normal tracking-[-0.02em] md:text-4xl ${tone}`}>

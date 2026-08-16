@@ -1,7 +1,3 @@
-// Shape-tolerant helpers for the deployments overview.
-// The /api/projects?deployed=true payload is owned by the backend, so every
-// field is read defensively with fallbacks — normalize once, consume everywhere.
-
 const READY = ["READY", "LIVE", "SUCCESS", "SUCCEEDED"];
 const BUILDING = ["BUILDING", "DEPLOYING", "QUEUED", "PENDING", "INITIALIZING", "IN_PROGRESS"];
 const FAILED = ["ERROR", "FAILED", "CANCELED", "CANCELLED"];
@@ -75,4 +71,17 @@ export function timeAgo(dateish) {
     if (value >= 1) return `${value}${label} ago`;
   }
   return "just now";
+}
+
+export function normalizeCommit(c = {}) {
+  const author =
+    typeof c.author === "string" ? c.author : c.author?.name || c.author?.login || "Unknown";
+  return {
+    sha: c.sha || "",
+    shortSha: (c.sha || "").slice(0, 7),
+    message: String(c.message || "").split("\n")[0] || "(no message)",
+    author,
+    date: c.date  || null,
+    url: c.url || "",
+  };
 }

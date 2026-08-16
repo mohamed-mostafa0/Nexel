@@ -8,17 +8,25 @@ const NAV = [
   { label: "Import", href: "/dashboard/import" },
 ];
 
-function isActive(pathname, href) {
-  return href === "/dashboard" ? pathname === href : pathname.startsWith(href);
+// Most-specific match wins, so nested routes (e.g. /dashboard/[projectId])
+// keep their parent tab ("Deployments") highlighted.
+function activeHref(pathname, hrefs) {
+  const matches = hrefs.filter((h) => pathname === h || pathname.startsWith(h + "/"));
+  if (matches.length === 0) return null;
+  return matches.sort((a, b) => b.length - a.length)[0];
 }
 
 export default function DashboardNav() {
   const pathname = usePathname();
+  const current = activeHref(
+    pathname,
+    NAV.map((n) => n.href)
+  );
 
   return (
     <nav className="mt-8 inline-flex items-center gap-1 rounded-pill border border-charcoal bg-graphite/60 p-1">
       {NAV.map((item) => {
-        const active = isActive(pathname, item.href);
+        const active = item.href === current;
         return (
           <Link
             key={item.href}
