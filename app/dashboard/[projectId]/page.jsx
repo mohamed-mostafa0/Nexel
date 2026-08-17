@@ -196,6 +196,7 @@ export default function DeploymentDetailPage() {
               isLoading={commitsLoading}
               isError={commitsError}
               refetch={refetchCommits}
+              projectId={projectId}
             />
           </div>
         </section>

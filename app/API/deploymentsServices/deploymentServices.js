@@ -57,4 +57,12 @@ export const getBuildLogs = (projectId , deploymentId)=>{
 }
 
 
+export const deployCommit = (projectId,commit)=>{
+    return API.post(`/api/projects/${projectId}/deployments` , {commit} , {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+    })
+}
+
 
