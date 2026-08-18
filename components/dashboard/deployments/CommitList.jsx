@@ -1,8 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { normalizeCommit, timeAgo } from "./helpers";
-import { deployCommit } from "@/app/API/deploymentsServices/deploymentServices";
+import { normalizeCommit, timeAgo, bucketStatus } from "./helpers";
+import {
+  deployCommit,
+  streamDeploymentEvents,
+} from "@/app/API/deploymentsServices/deploymentServices";
 import Button from "../../ui/Button";
 
 const CommitIcon = ({ className }) => (
@@ -58,21 +61,53 @@ const Spinner = ({ className }) => (
 function DeployCommitButton({ projectId, sha }) {
   const queryClient = useQueryClient();
   const [state, setState] = useState("idle");
+  const [liveStatus, setLiveStatus] = useState(null);
+  const ctrlRef = useRef(null);
+
+  useEffect(() => () => ctrlRef.current?.abort(), []);
 
   useEffect(() => {
     if (state !== "done" && state !== "error") return;
-    const t = setTimeout(() => setState("idle"), 2500);
+    const t = setTimeout(() => {
+      setState("idle");
+      setLiveStatus(null);
+    }, 4000);
     return () => clearTimeout(t);
   }, [state]);
+
+  const refreshLists = () => {
+    queryClient.invalidateQueries({ queryKey: ["projectDeployments", projectId] });
+    queryClient.invalidateQueries({ queryKey: ["deployments"] });
+  };
 
   const onDeploy = async () => {
     if (!projectId || !sha || state === "deploying") return;
     setState("deploying");
+    setLiveStatus("QUEUED");
     try {
-      await deployCommit(projectId, sha);
-      queryClient.invalidateQueries({ queryKey: ["projectDeployments", projectId] });
-      queryClient.invalidateQueries({ queryKey: ["deployments"] });
-      setState("done");
+      const res = await deployCommit(projectId, sha);
+      const deploymentId =
+        res?.data?.id ?? res?.data?.deployment?.id ?? res?.data?.deploymentId;
+      refreshLists(); 
+
+      if (!deploymentId) {
+        setState("done");
+        return;
+      }
+
+      ctrlRef.current?.abort(); 
+      ctrlRef.current = streamDeploymentEvents(projectId, deploymentId, {
+        onStatus: (status) => {
+          setLiveStatus(status);
+          const bucket = bucketStatus(status);
+          if (bucket === "ready" || bucket === "failed") {
+            setState(bucket === "ready" ? "done" : "error");
+            refreshLists();
+            ctrlRef.current?.abort(); 
+          }
+        },
+        onError: () => setState("error"),
+      });
     } catch (err) {
       console.error("Deploy commit failed:", err);
       setState("error");
@@ -80,6 +115,10 @@ function DeployCommitButton({ projectId, sha }) {
   };
 
   if (!sha) return null;
+
+  const liveLabel = liveStatus
+    ? liveStatus.charAt(0) + liveStatus.slice(1).toLowerCase()
+    : "Deploying";
 
   const styles = {
     idle: "border-charcoal text-vellum hover:bg-white/5",
@@ -98,7 +137,7 @@ function DeployCommitButton({ projectId, sha }) {
       {state === "deploying" ? (
         <>
           <Spinner className="h-3.5 w-3.5 text-iris" />
-          <span className="hidden sm:inline">Deploying</span>
+          <span className="hidden sm:inline">{liveLabel}</span>
         </>
       ) : state === "done" ? (
         <>
