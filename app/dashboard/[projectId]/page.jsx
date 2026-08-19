@@ -81,7 +81,6 @@ export default function DeploymentDetailPage() {
     refetchOnWindowFocus: false,
   });
 
-  // Real deployment records give a more accurate live URL + status than the projects list.
   const { data: projDepData } = useQuery({
     queryKey: ["projectDeployments", projectId],
     queryFn: async () => {

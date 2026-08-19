@@ -86,7 +86,6 @@ body {
 }
 .animate-kenburns { animation: kenburns 32s ease-in-out infinite alternate; }
 
-/* Header / menu entrance — mirrors the hero reveal's calm easing */
 @keyframes fade-down {
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
