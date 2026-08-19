@@ -9,8 +9,8 @@ import Framed from "../ui/Framed";
 export default function Platform(){
 
     return <>
-          <div id="platform" className="mx-auto max-w-7xl scroll-mt-24 px-6 py-24 md:py-28 lg:px-8">
-            <div className="grid items-center gap-12 md:grid-cols-2 md:gap-16">
+          <div id="platform" className="mx-auto max-w-7xl scroll-mt-24 px-6 py-16 md:py-28 lg:px-8">
+            <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
               <Reveal y={20} className="order-2 md:order-1">
                 <p className="eyebrow">Preview deployments</p>
                 <h2 className="mt-4 max-w-md text-3xl font-normal leading-[1.1] tracking-[-0.02em] text-vellum md:text-[38px]">
@@ -79,10 +79,10 @@ export default function Platform(){
               </Reveal>
             </div>
     
-            <div className="mt-24 grid items-center gap-12 md:mt-28 md:grid-cols-2 md:gap-16">
+            <div className="mt-16 grid items-center gap-10 md:mt-28 md:grid-cols-2 md:gap-16">
               <Reveal y={24} className="order-1">
                 <Framed>
-                  <div className="flex items-center justify-between border-b border-white/5 bg-void/70 px-4 py-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-white/5 bg-void/70 px-4 py-2.5">
                     <span className="font-mono text-[11px] text-smoke">Analytics · last 24h</span>
                     <span className="font-mono text-[11px] text-iris">Real Experience Score 98</span>
                   </div>

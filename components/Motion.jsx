@@ -45,29 +45,6 @@ export function Reveal({
 }
 
 
-// export function Parallax({
-//   children,
-//   className = "",
-//   from = 0,
-//   to = -60,
-//   start = 0,
-//   end = 900,
-// }) {
-//   const reduce = useReducedMotion();
-//   const { scrollY } = useScroll();
-//   const rawY = useTransform(scrollY, [start, end], [from, to]);
-//   const y = useSpring(rawY, { stiffness: 90, damping: 30, restDelta: 0.5 });
-
-//   if (reduce) return <div className={className}>{children}</div>;
-
-//   return (
-//     <motion.div className={className} style={{ y }}>
-//       {children}
-//     </motion.div>
-//   );
-// }
-
-
 export function Counter({
   to,
   duration = 1.8,
@@ -110,20 +87,4 @@ export function Counter({
 }
 
 
-// export function ScrollProgress() {
-//   const reduce = useReducedMotion();
-//   const { scrollYProgress } = useScroll();
-//   const scaleX = useSpring(scrollYProgress, {
-//     stiffness: 120,
-//     damping: 30,
-//     restDelta: 0.001,
-//   });
 
-//   return (
-//     <motion.div
-//       aria-hidden="true"
-//       className="fixed inset-x-0 top-0 z-[100] h-0.5 origin-left bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-400 shadow-[0_0_12px_rgba(139,92,246,0.5)]"
-//       style={{ scaleX: reduce ? scrollYProgress : scaleX }}
-//     />
-//   );
-// }
